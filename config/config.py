@@ -18,11 +18,13 @@ class Settings:
             timer_config = config['timers']
             airodump_config = config['airodump']
 
-            self.isServer = general_config['Profil'].lower() == 'Server'
+            self.isServer = general_config['Profil'].lower() == 'server'
             self.log_level = general_config['LoggingLevel'].upper()
+            if self.log_level not in ['ERROR', 'WARNING', 'INFO', 'DEBUG']:
+                raise Exception(f"config.ini: LoggingLevel {self.log_level} is invalid")
             
             self.server_ip = network_config['ServerIP']
-            self.server_port = network_config['ServerPort']
+            self.server_port = network_config.getint('ServerPort')
 
             self.capture_path = path_config['CapturePath']
 
