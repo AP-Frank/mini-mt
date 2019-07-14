@@ -1,8 +1,9 @@
-import socket
 import datetime as dt
-import time
-import subprocess
+import logging
 import shlex
+import socket
+import subprocess
+import time
 
 import config.config
 from connection.socket_wrapper import SocketWrapper
@@ -15,6 +16,7 @@ from messages.time_message import TimeMessage
 def main(settings: config.config.Settings):
     while(True):
         try:
+            logging.info('Trying to connect to server')
             sock = socket.create_connection(
                 (settings.server_ip, int(settings.server_port)))
             wsock = SocketWrapper(sock, settings.select_timeout)
@@ -46,6 +48,7 @@ def main(settings: config.config.Settings):
                     break
 
         except socket.timeout:
+            logging.info('Socket connect has timed out, restarting')
             pass
 
     start_wlan_measurement(settings)
@@ -53,12 +56,14 @@ def main(settings: config.config.Settings):
 
 def set_time(time: dt.datetime):
     time_string = time.isoformat()
+    logging.info(f'Adjusting our time to {time_string}')
     subprocess.call(shlex.split(f"sudo date -s {time_string}"))
 
 
 def start_wlan_measurement(settings: config.config.Settings):
     output_file = "{}/capture".format(settings.capture_path)
     call_statement = settings.airodump_command.format(output_file=output_file)
+    logging.info(f'Starting Airodump with command:\n\t{call_statement}\n')
     
     while True:     
         print(call_statement)

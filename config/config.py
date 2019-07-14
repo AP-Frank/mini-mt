@@ -19,6 +19,7 @@ class Settings:
             airodump_config = config['airodump']
 
             self.isServer = general_config['Profil'].lower() == 'Server'
+            self.log_level = general_config['LoggingLevel'].upper()
             
             self.server_ip = network_config['ServerIP']
             self.server_port = network_config['ServerPort']

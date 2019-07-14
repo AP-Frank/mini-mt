@@ -1,5 +1,5 @@
-import datetime
 import socket
+import logging
 from threading import Thread
 
 from config.config import Settings
@@ -22,10 +22,12 @@ def main(settings: Settings) -> None:
 
     while True:
         try:
+            logging.info('Waiting for client connections')
             (client_socket, address) = server_socket.accept()
             t = Thread(target=run, args=(client_socket, address, settings))
             t.start()
         except socket.timeout:
+            logging.warn('Socket accept has timed out, restarting ...')
             pass
 
 
@@ -33,11 +35,12 @@ def run(client_socket: socket.socket, address: (str, int), settings: Settings) -
     """
     Thread which handles one client connection
     """
-
+    logging.info(f'Client (ip: {address[0]}) has connected')
     wsock = SocketWrapper(client_socket, settings.select_timeout)
 
     while(True):
         # now send timestamp and start signal
+        logging.info('Starting to send data')
         wsock.send_message(bytes(TimeMessage()))
         wsock.send_message(bytes(CommandMessage(Command.COMMAND)))
         wsock.send_message(bytes(StringMessage(settings.airodump_command)))
@@ -46,6 +49,7 @@ def run(client_socket: socket.socket, address: (str, int), settings: Settings) -
         msg = wsock.receive_message()
         if isinstance(msg, CommandMessage):
             if msg.command == Command.CYA:
+                logging.info('Client has signaled successfull start of operation')
                 # remote device has started successfully
                 break
 
