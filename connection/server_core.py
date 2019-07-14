@@ -7,7 +7,7 @@ from messages.command_message import CommandMessage
 from messages.message_types import Command
 from messages.time_message import TimeMessage
 from messages.string_message import StringMessage
-from socket_wrapper import SocketWrapper
+from connection.socket_wrapper import SocketWrapper
 
 
 def main(settings: Settings) -> None:

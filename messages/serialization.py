@@ -1,9 +1,9 @@
 from typing import Union
 
-from message_types import MessageType
-from command_message import CommandMessage
-from time_message import TimeMessage
-from string_message import StringMessage
+from messages.message_types import MessageType
+from messages.command_message import CommandMessage
+from messages.time_message import TimeMessage
+from messages.string_message import StringMessage
 
 
 def from_bytes(bb: bytes) -> Union[CommandMessage, TimeMessage, StringMessage]:

@@ -7,7 +7,7 @@ from config.config import Settings
 # change working dir to this directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-settings = Settings(os.path('config', 'config.ini'))
+settings = Settings(str(os.path.join('config', 'config.ini')))
 
 if settings.isServer:
     # you are the server

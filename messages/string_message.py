@@ -1,4 +1,4 @@
-from message_types import MessageType
+from messages.message_types import MessageType
 
 
 class StringMessage:

@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 
-from message_types import Command, MessageType
+from messages.message_types import Command, MessageType
 
 
 class CommandMessage:
