@@ -15,3 +15,6 @@ sudo cp wpa_supplicant.conf /etc/wpa_supplicant/
 # https://serverfault.com/a/880575
 sudo cp /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant backups/10-wpa_supplicant.orig
 sudo sed -i 's,if \[ "\$ifwireless" = "1" \] \&\& \\,if \[ "\$ifwireless" = "1" \] \&\& \[ "\$interface" = "wlan0" \] \&\& \\,g' /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant
+
+echo "$( dirname "$THIS_DIR")/tools/start.sh" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
+
