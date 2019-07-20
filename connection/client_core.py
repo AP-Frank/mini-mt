@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 import logging
 import shlex
 import socket
@@ -13,7 +14,7 @@ from messages.string_message import StringMessage
 from messages.time_message import TimeMessage
 
 
-def main(settings: config.config.Settings):
+def main(settings: config.config.Settings) -> None:
     while(True):
         try:
             logging.info('Trying to connect to server')
@@ -36,7 +37,7 @@ def main(settings: config.config.Settings):
             msg = wsock.receive_message()
             if isinstance(msg, StringMessage):
                 # set the actual airodump command
-                settings.airodump_command = msg.command
+                settings.airodump_command = msg.string
             else:
                 continue
 
@@ -54,20 +55,42 @@ def main(settings: config.config.Settings):
     start_wlan_measurement(settings)
 
 
-def set_time(time: dt.datetime):
+def set_time(time: dt.datetime) -> None:
     time_string = time.isoformat()
     logging.info(f'Adjusting our time to {time_string}')
     subprocess.call(shlex.split(f"sudo date -s {time_string}"))
 
 
-def start_wlan_measurement(settings: config.config.Settings):
+def start_wlan_measurement(settings: config.config.Settings) -> None:
     output_file = "{}/capture".format(settings.capture_path)
-    call_statement = settings.airodump_command.format(output_file=output_file)
+
+    # get wlans, this only works on linux
+    network_dir = os.path.join(os.pathsep, 'sys', 'class', 'net')
+    ifaces = os.listdir(network_dir)
+
+    # find names of interfaces which have the correct MAC addresses
+    airo_ifaces = []
+    for interface in ifaces:
+        with open(os.path.join(network_dir, interface, 'address'), 'r') as f:
+            # make sure that string is lowercase and free of whitespaces
+            mac_actual: str = f.readline().strip().lower()
+
+            for mac_airo in settings.airodump_iface_macs:
+                # when the substring that is mac_airo is found at position 0
+                # we know that our mac address matches
+                if mac_actual.find(mac_airo) == 0:
+                    airo_ifaces.append(interface)
+                    break
+
+    # set output file and all available interfaces
+    call_statement = settings.airodump_command.format(
+        wlans=','.join(airo_ifaces), output_file=output_file)
     logging.info(f'Starting Airodump with command:\n\t{call_statement}\n')
-    
-    while True:     
+
+    while True:
         print(call_statement)
-        proc = subprocess.Popen(shlex.split(call_statement), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc = subprocess.Popen(shlex.split(
+            call_statement), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         time.sleep(settings.cap_freq)
         subprocess.call('sudo killall airodump-ng', shell=True)

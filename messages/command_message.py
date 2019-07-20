@@ -1,5 +1,3 @@
-from datetime import datetime as dt
-
 from messages.message_types import Command, MessageType
 
 
@@ -17,7 +15,7 @@ class CommandMessage:
     def __bytes__(self):
         type_buf = MessageType.COMMAND_MESSAGE.to_bytes(
             1, byteorder='Big', signed=False)
-        command_buf = Command.to_bytes(1, byteorder='Big', signed=False)
+        command_buf = self.command.to_bytes(1, byteorder='Big', signed=False)
         return type_buf + command_buf
 
     @staticmethod

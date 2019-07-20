@@ -14,11 +14,10 @@ class Settings:
         try:
             general_config = config['general']
             network_config = config['network']
-            path_config = config['paths']
             timer_config = config['timers']
             airodump_config = config['airodump']
 
-            self.isServer = general_config['Profil'].lower() == 'server'
+            self.isServer = general_config['Profile'].lower() == 'server'
             self.log_level = general_config['LoggingLevel'].upper()
             if self.log_level not in ['ERROR', 'WARNING', 'INFO', 'DEBUG']:
                 raise Exception(f"config.ini: LoggingLevel {self.log_level} is invalid")
@@ -26,14 +25,15 @@ class Settings:
             self.server_ip = network_config['ServerIP']
             self.server_port = network_config.getint('ServerPort')
 
-            self.capture_path = path_config['CapturePath']
-
             self.cap_freq = timer_config.getint('CaptureFrequency')
             self.sanity_freq = timer_config.getint('SanityCheckFrequency')
             self.del_files_older = timer_config.getint('DeleteFilesOlder')
             self.select_timeout = timer_config.getint('SelectTimeout')
 
             self.airodump_command = airodump_config['Command']
+            ifaces = airodump_config['InterfaceMACs']
+            self.airodump_iface_macs = [x.strip().lower() for x in ifaces.split(',')]
+            self.capture_path = airodump_config['CapturePath']
 
             
         except KeyError as ex:
