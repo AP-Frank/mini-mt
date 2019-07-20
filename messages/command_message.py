@@ -14,16 +14,16 @@ class CommandMessage:
 
     def __bytes__(self):
         type_buf = MessageType.COMMAND_MESSAGE.to_bytes(
-            1, byteorder='Big', signed=False)
-        command_buf = self.command.to_bytes(1, byteorder='Big', signed=False)
+            1, byteorder='big', signed=False)
+        command_buf = self.command.to_bytes(1, byteorder='big', signed=False)
         return type_buf + command_buf
 
     @staticmethod
     def from_bytes(bb: bytes):
-        msg_type = int.from_bytes(bb[0:1], byteorder='Big', signed=False)
+        msg_type = int.from_bytes(bb[0:1], byteorder='big', signed=False)
         assert msg_type == MessageType.COMMAND_MESSAGE
         assert len(bb) == 2
 
         command = Command(int.from_bytes(
-            bb[1:2], byteorder='Big', signed=False))
+            bb[1:2], byteorder='big', signed=False))
         return CommandMessage(command)

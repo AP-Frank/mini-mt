@@ -10,7 +10,7 @@ def from_bytes(bb: bytes) -> Union[CommandMessage, TimeMessage, StringMessage]:
     """
     Extracts all known messages
     """
-    message_type = int.from_bytes(bb[0:1], byteorder='Big', signed=False)
+    message_type = int.from_bytes(bb[0:1], byteorder='big', signed=False)
 
     if message_type == MessageType.TIME_MESSAGE:
         return TimeMessage.from_bytes(bb)

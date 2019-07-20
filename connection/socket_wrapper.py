@@ -54,13 +54,13 @@ class SocketWrapper:
     def send_message(self, buf: bytes):
         # prepend the length of the message
         length: int = len(buf)
-        len_buf = length.to_bytes(LENGTH, byteorder='Big', signed=False)
+        len_buf = length.to_bytes(LENGTH, byteorder='big', signed=False)
         self._send(len_buf + buf)
 
     def receive_message(self):
         # fetch length header first
         buf = self._receive(LENGTH)
-        length = int.from_bytes(buf, byteorder='Big', signed=False)
+        length = int.from_bytes(buf, byteorder='big', signed=False)
 
         # get payload
         buf = self._receive(length)
