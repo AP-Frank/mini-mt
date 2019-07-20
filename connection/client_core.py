@@ -62,10 +62,10 @@ def set_time(time: dt.datetime) -> None:
 
 
 def start_wlan_measurement(settings: config.config.Settings) -> None:
-    output_file = "{}/capture".format(settings.capture_path)
+    output_file = os.path.join(settings.capture_path, 'capture')
 
     # get wlans, this only works on linux
-    network_dir = os.path.join(os.pathsep, 'sys', 'class', 'net')
+    network_dir = os.path.join(os.sep, 'sys', 'class', 'net')
     ifaces = os.listdir(network_dir)
 
     # find names of interfaces which have the correct MAC addresses
@@ -81,6 +81,9 @@ def start_wlan_measurement(settings: config.config.Settings) -> None:
                 if mac_actual.find(mac_airo) == 0:
                     airo_ifaces.append(interface)
                     break
+
+    logging.info(f'Creating output directory {output_file}')
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # set output file and all available interfaces
     call_statement = settings.airodump_command.format(
