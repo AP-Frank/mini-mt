@@ -5,7 +5,7 @@ cd "$THIS_DIR"
 
 # install tools if neccessary
 sudo apt update
-sudo apt install dnsmasq hostapd
+sudo apt install dnsmasq hostapd arp-scan
 
 sudo systemctl stop dnsmasq
 sudo systemctl stop hostapd
