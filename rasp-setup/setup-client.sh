@@ -16,5 +16,7 @@ sudo cp wpa_supplicant.conf /etc/wpa_supplicant/
 sudo cp /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant backups/10-wpa_supplicant.orig
 sudo sed -i 's,if \[ "\$ifwireless" = "1" \] \&\& \\,if \[ "\$ifwireless" = "1" \] \&\& \[ "\$interface" = "wlan0" \] \&\& \\,g' /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant
 
-echo "$( dirname "$THIS_DIR")/tools/start.sh" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
+# make sure we add the string to the autostart script only once
+AUTO_STRING="$( dirname "$THIS_DIR")/tools/start.sh"
+grep -qxF "$AUTO_STRING" /etc/xdg/lxsession/LXDE-pi/autostart || echo "$AUTO_STRING" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
 
