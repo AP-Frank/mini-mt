@@ -5,8 +5,10 @@ import shlex
 import socket
 import subprocess
 import time
+import threading
 
 import config.config
+import util.save_files as sf
 from connection.socket_wrapper import SocketWrapper
 from messages.command_message import CommandMessage
 from messages.message_types import Command
@@ -52,6 +54,10 @@ def main(settings: config.config.Settings) -> None:
             logging.info('Socket connect has timed out, restarting')
             pass
 
+    if settings.zip:
+        zip_thread = threading.Thread(target=sf.zip_and_delete, args=(settings,))
+        zip_thread.daemon = True
+        zip_thread.start() 
     start_wlan_measurement(settings)
 
 
