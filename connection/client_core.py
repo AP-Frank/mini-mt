@@ -34,6 +34,7 @@ def main(settings: config.config.Settings) -> None:
         # if succeeds, we have an old configuration available
         loaded_settings = sf.load_data(save_path)
 
+        logging.info('Found config file from previous run')
         wlan_thread = threading.Thread(target=start_wlan_measurement, args=(
             settings, wlan_thread_stop, loaded_settings['airodump_command']))
         wlan_thread.daemon = True
@@ -48,6 +49,8 @@ def main(settings: config.config.Settings) -> None:
 
     if contact_successful:
         wlan_thread_stop.set()
+
+        logging.info('Successfully fetched new config from server (re-)starting Airodump')
 
         # lets leave the event from the other thread alone in case
         # it takes a bit longer to stop itself
@@ -76,8 +79,7 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
 
     while(attempts is None or attempts > 0):
         try:
-            logging.info(
-                f'Trying to connect to server. Remaining attempts {attempts-1}')
+            logging.info('Trying to connect to server.')
             sock = socket.create_connection(
                 (settings.server_ip, int(settings.server_port)), timeout=settings.socket_timeout)
             wsock = SocketWrapper(sock)
@@ -109,12 +111,17 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
                     connection_successful = True
                     break
 
+        except ConnectionRefusedError:
+            logging.info('Server refused connection')
+            logging.info('Will retry in 10 seconds')
+            time.sleep(10)
         except socket.timeout:
             logging.info('Socket connect has timed out, restarting')
-        finally:
             sock.close()
+        finally:
             if attempts is int:
                 attempts -= 1
+                logging.info('Remaing attempts {attempts}')
 
     return connection_successful
 
