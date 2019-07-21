@@ -7,7 +7,7 @@ mkdir -p backups
 
 # install tools if neccessary
 sudo apt update
-sudo apt install dnsmasq hostapd arp-scan
+sudo apt install dnsmasq hostapd arp-scan ntp
 
 sudo systemctl stop dnsmasq
 sudo systemctl stop hostapd
