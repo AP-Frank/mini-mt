@@ -32,7 +32,7 @@ def main(settings: config.config.Settings) -> None:
                 continue
 
             msg = wsock.receive_message()
-            if not isinstance(msg, CommandMessage) or msg.command != Command.COMMAND:
+            if not isinstance(msg, CommandMessage) or not isinstance(msg.command, Command.COMMAND):
                 # we expect a the airodump command next
                 continue
 
@@ -47,12 +47,12 @@ def main(settings: config.config.Settings) -> None:
             if isinstance(msg, CommandMessage):
                 if msg.command == Command.START:
                     wsock.send_message(bytes(CommandMessage(Command.CYA)))
-                    sock.close()
                     break
 
         except socket.timeout:
             logging.info('Socket connect has timed out, restarting')
-            pass
+        finally:
+            sock.close()
 
     if settings.zip:
         zip_thread = threading.Thread(target=sf.zip_and_delete, args=(settings,))
@@ -99,7 +99,7 @@ def start_wlan_measurement(settings: config.config.Settings) -> None:
 
     while True:
         print(call_statement)
-        proc = subprocess.Popen(shlex.split(
+        subprocess.Popen(shlex.split(
             call_statement), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         time.sleep(settings.cap_freq)
