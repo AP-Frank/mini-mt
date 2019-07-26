@@ -1,12 +1,23 @@
+import json
 import os
 import re
+import subprocess
 import time
 import zipfile
-import subprocess
 
 import config.config
 
 all_cap_csv = re.compile(r'capture-[0-9]+\.(cap|csv)$')
+
+
+def save_data(to_save: dict, path: str) -> None:
+    with open(path, 'w') as save_file:
+        save_file.writelines(json.dumps(to_save, sort_keys=True, indent=4))
+
+
+def load_data(path: str) -> dict:
+    with open(path, 'r') as save_file:
+        return json.load(save_file)
 
 
 def zip_and_delete(settings: config.config.Settings):
@@ -27,7 +38,7 @@ def zip_and_delete(settings: config.config.Settings):
 
     while True:
         files = os.listdir(settings.capture_path)
-        
+
         zip_list = list()
         candidates = list()
 
@@ -39,18 +50,18 @@ def zip_and_delete(settings: config.config.Settings):
                 if match is not None:
                     candidates.append(match.group(0))
 
-
         candidates = sorted(candidates)
         zip_list = candidates[:-settings.zip_file_buffer]
 
         print(zip_list)
-        
+
         # make sure we have enough files (at least MinGroupSize)
         if len(zip_list) >= int(settings.zip_group_size):
             filename = f'container-{zip_ctr}.zip'
             with zipfile.ZipFile(os.path.join(settings.zip_path, filename), 'w') as zipper:
                 for f in zip_list:
-                    zipper.write(os.path.join(settings.capture_path, f), f, compress_type=zipfile.ZIP_DEFLATED)
+                    zipper.write(os.path.join(settings.capture_path, f),
+                                 f, compress_type=zipfile.ZIP_DEFLATED)
                     saved_files.add(f)
                     # because we have likely no permission to clear the file
                     # we need to sudo our way around it

@@ -4,8 +4,9 @@ import sys
 
 class Settings:
 
-    def __init__(self, path):
-        self.read_config(path)
+    def __init__(self, path, **kwargs):
+        if path is not None:
+            self.read_config(path)
 
     def read_config(self, path):
         config = configparser.ConfigParser()
@@ -14,11 +15,10 @@ class Settings:
         try:
             general_config = config['general']
             network_config = config['network']
-            timer_config = config['timers']
             airodump_config = config['airodump']
             storage_config = config['storage']
 
-            self.isServer = general_config['Profile'].lower() == 'server'
+            self.is_server = general_config['Profile'].lower() == 'server'
             self.log_level = general_config['LoggingLevel'].upper()
             if self.log_level not in ['ERROR', 'WARNING', 'INFO', 'DEBUG']:
                 raise Exception(f"config.ini: LoggingLevel {self.log_level} is invalid")
@@ -48,3 +48,6 @@ class Settings:
         except KeyError as ex:
             print("Config misses entry for:" + ex.args[0])
             sys.exit(2)
+
+
+

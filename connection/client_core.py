@@ -1,11 +1,12 @@
 import datetime as dt
-import os
 import logging
+import os
 import shlex
 import socket
 import subprocess
-import time
 import threading
+import time
+from typing import Optional
 
 import config.config
 import util.save_files as sf
@@ -15,11 +16,68 @@ from messages.message_types import Command
 from messages.string_message import StringMessage
 from messages.time_message import TimeMessage
 
+# file where we store saved data
+save_path = os.path.join('config', 'save.json')
+
 
 def main(settings: config.config.Settings) -> None:
-    while(True):
+    wlan_thread_stop = threading.Event()
+
+    if settings.zip:
+        # if set, we just run this infinitely
+        zip_thread = threading.Thread(
+            target=sf.zip_and_delete, args=(settings,))
+        zip_thread.daemon = True
+        zip_thread.start()
+
+    try:
+        # if succeeds, we have an old configuration available
+        loaded_settings = sf.load_data(save_path)
+
+        wlan_thread = threading.Thread(target=start_wlan_measurement, args=(
+            settings, wlan_thread_stop, loaded_settings['airodump_command']))
+        wlan_thread.daemon = True
+        wlan_thread.start()
+
+        # see if we still can get an updated variant
+        contact_successful = contact_server(settings, 10)
+    except FileNotFoundError:
+        # we have nothing else to do, we block until
+        # we get a connection
+        contact_successful = contact_server(settings, None)
+
+    if contact_successful:
+        wlan_thread_stop.set()
+
+        # lets leave the event from the other thread alone in case
+        # it takes a bit longer to stop itself
+        wlan_thread_stop = threading.Event()
+
+        # this time run it in the main thread, stop will not be called
+        # -> blocking
+        start_wlan_measurement(settings, wlan_thread_stop)
+    else:
+        # this can only happen if we had no previous configuration,
+        # in that case just keep running the old config thread
+        while(True):
+            time.sleep(10)
+
+
+def contact_server(settings: config.config.Settings, attempts: Optional[int]) -> bool:
+    """
+    Try to contact the server and get a new configuration (i.e., an airodump command)
+
+    If attempts is greater 0, this is the number of connection attempts conducted. Values of 0
+    or lower mean there is no attempt made. None means that infinite attempts are made
+
+    Returns True if a successful connection attempt was made, False otherwise
+    """
+    connection_successful = False
+
+    while(attempts is None or attempts > 0):
         try:
-            logging.info('Trying to connect to server')
+            logging.info(
+                f'Trying to connect to server. Remaining attempts {attempts-1}')
             sock = socket.create_connection(
                 (settings.server_ip, int(settings.server_port)), timeout=settings.socket_timeout)
             wsock = SocketWrapper(sock)
@@ -40,6 +98,7 @@ def main(settings: config.config.Settings) -> None:
             if isinstance(msg, StringMessage):
                 # set the actual airodump command
                 settings.airodump_command = msg.string
+                sf.save_data(vars(settings), save_path)
             else:
                 continue
 
@@ -47,19 +106,17 @@ def main(settings: config.config.Settings) -> None:
             if isinstance(msg, CommandMessage):
                 if msg.command == Command.START:
                     wsock.send_message(bytes(CommandMessage(Command.CYA)))
+                    connection_successful = True
                     break
 
         except socket.timeout:
             logging.info('Socket connect has timed out, restarting')
         finally:
             sock.close()
+            if attempts is int:
+                attempts -= 1
 
-    if settings.zip:
-        zip_thread = threading.Thread(target=sf.zip_and_delete, args=(settings,))
-        zip_thread.daemon = True
-        zip_thread.start()
-
-    start_wlan_measurement(settings)
+    return connection_successful
 
 
 def set_time(time: dt.datetime) -> None:
@@ -68,7 +125,7 @@ def set_time(time: dt.datetime) -> None:
     subprocess.call(shlex.split(f"sudo date -s {time_string}"))
 
 
-def start_wlan_measurement(settings: config.config.Settings) -> None:
+def start_wlan_measurement(settings: config.config.Settings, stop_event: threading.Event, override_command=None) -> None:
     output_file = os.path.join(settings.capture_path, 'capture')
 
     # get wlans, this only works on linux
@@ -93,14 +150,18 @@ def start_wlan_measurement(settings: config.config.Settings) -> None:
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # set output file and all available interfaces
-    call_statement = settings.airodump_command.format(
-        wlans=','.join(airo_ifaces), output_file=output_file)
+    if override_command is None:
+        call_statement = settings.airodump_command.format(
+            wlans=','.join(airo_ifaces), output_file=output_file)
+    else:
+        call_statement = override_command.format(
+            wlans=','.join(airo_ifaces), output_file=output_file)
     logging.info(f'Starting Airodump with command:\n\t{call_statement}\n')
 
-    while True:
+    while not stop_event.is_set:
         print(call_statement)
         subprocess.Popen(shlex.split(
             call_statement), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        time.sleep(settings.cap_freq)
+        stop_event.wait(timeout=settings.cap_freq)
         subprocess.call('sudo killall airodump-ng', shell=True)
