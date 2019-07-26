@@ -4,7 +4,11 @@ import socket
 from messages import serialization
 from mtexceptions.network_exceptions import ConnectionLost
 
-LENGTH = 1  # size in bytes of the length field
+# The number of bytes in which the length of a message is encoded.
+# This value limits the size of supported messages. It is not exposed
+# to the configuration file as it always needs to be the same for all
+# PIs.
+LENGTH = 2
 
 
 class SocketWrapper:
@@ -23,9 +27,8 @@ class SocketWrapper:
     do_compress: bool
     select_timeout: float
 
-    def __init__(self, _socket: socket.socket, select_timeout: float):
+    def __init__(self, _socket: socket.socket):
         self.sock = _socket
-        self.select_timeout = select_timeout
 
     def _send(self, msg: bytes) -> int:
         totalsent = 0
@@ -66,5 +69,3 @@ class SocketWrapper:
         buf = self._receive(length)
         return serialization.from_bytes(buf)
 
-    def check_for_incoming_data(self):
-        return select.select([self.sock], [], [], self.select_timeout)[0]

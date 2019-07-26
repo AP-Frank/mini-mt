@@ -11,6 +11,9 @@ from connection.socket_wrapper import SocketWrapper
 
 
 def main(settings: Settings) -> None:
+    # we set the default timeout, it should be inherited by sockets
+    # created via accept
+    socket.setdefaulttimeout(settings.socket_timeout)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_port = settings.server_port
 
@@ -36,7 +39,7 @@ def run(client_socket: socket.socket, address: (str, int), settings: Settings) -
     Thread which handles one client connection
     """
     logging.info(f'Client (ip: {address[0]}) has connected')
-    wsock = SocketWrapper(client_socket, settings.select_timeout)
+    wsock = SocketWrapper(client_socket)
 
     while(True):
         # now send timestamp and start signal

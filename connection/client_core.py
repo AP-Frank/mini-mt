@@ -21,8 +21,8 @@ def main(settings: config.config.Settings) -> None:
         try:
             logging.info('Trying to connect to server')
             sock = socket.create_connection(
-                (settings.server_ip, int(settings.server_port)))
-            wsock = SocketWrapper(sock, settings.select_timeout)
+                (settings.server_ip, int(settings.server_port)), timeout=settings.socket_timeout)
+            wsock = SocketWrapper(sock)
 
             msg = wsock.receive_message()
             if isinstance(msg, TimeMessage):
@@ -57,7 +57,8 @@ def main(settings: config.config.Settings) -> None:
     if settings.zip:
         zip_thread = threading.Thread(target=sf.zip_and_delete, args=(settings,))
         zip_thread.daemon = True
-        zip_thread.start() 
+        zip_thread.start()
+
     start_wlan_measurement(settings)
 
 

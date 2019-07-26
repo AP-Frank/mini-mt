@@ -26,10 +26,7 @@ class Settings:
             # network config
             self.server_ip = network_config['ServerIP']
             self.server_port = network_config.getint('ServerPort')
-
-            # timer config
-            self.cap_freq = timer_config.getint('CaptureFrequency')
-            self.select_timeout = timer_config.getint('SelectTimeout')
+            self.socket_timeout = network_config.getint('SocketTimeout')
 
             # storage config
             self.zip = storage_config.getboolean('ZipCaptures')
@@ -45,6 +42,7 @@ class Settings:
             ifaces = airodump_config['InterfaceMACs']
             self.airodump_iface_macs = [x.strip().lower() for x in ifaces.split(',')]
             self.capture_path = airodump_config['CapturePath']
+            self.cap_freq = airodump_config.getint('CaptureFrequency')
 
             
         except KeyError as ex:
