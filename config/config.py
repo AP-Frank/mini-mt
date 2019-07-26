@@ -27,6 +27,7 @@ class Settings:
             self.server_ip = network_config['ServerIP']
             self.server_port = network_config.getint('ServerPort')
             self.socket_timeout = network_config.getint('SocketTimeout')
+            self.connection_attempts = network_config.getint('ConnectionAttempts')
 
             # storage config
             self.zip = storage_config.getboolean('ZipCaptures')

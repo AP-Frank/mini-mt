@@ -40,7 +40,7 @@ def main(settings: config.config.Settings) -> None:
         wlan_thread.start()
 
         # see if we still can get an updated variant
-        contact_successful = contact_server(settings, 10)
+        contact_successful = contact_server(settings, settings.connection_attempts)
     except FileNotFoundError:
         # we have nothing else to do, we block until
         # we get a connection
