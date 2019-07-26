@@ -4,22 +4,24 @@ This is a simplified version of the MobilityTracking project. The code is comple
 
 ## Feature Matrix
 
-| Feature                      | MobilityTracking | Mini-MT |
-| ---------------------------- | ---------------- | ------- |
-| Unlimited Pis                | no               | yes     |
-| Visualization                | yes              | no      |
-| OEX                          | yes              | no      |
-| GUI                          | yes              | no      |
-| Pi Management Tools          | no               | yes     |
-| Interface Detection          | no               | yes     |
-| Airodump Multiple .cap Files | yes              | yes     |
+| Feature                           | MobilityTracking | Mini-MT |
+| --------------------------------- | ---------------- | ------- |
+| Unlimited Pis                     | no               | yes     |
+| Visualization                     | yes              | no      |
+| OEX                               | yes              | no      |
+| GUI                               | yes              | no      |
+| Pi Management Tools               | no               | yes     |
+| Interface Detection               | no               | yes     |
+| Airodump Output in Intervals      | yes              | yes     |
+| Compression of Output             | yes              | yes     |
+| Autostart with old Configurations | no               | yes     |
 
 ## Setup Notes
 The setup of a Raspberry Pi is automated as far as possible without to much effort. When setting up a new Pi follow these instructions (**Note**: Internet access is required):
 
 1. Setup SSH
    
-    Enable SSH on the Pi. Create an SSH key and deploy them in a folder ``/home/pi/keys/``. Add the public key to the ``.ssh/authorized_keys`` file.
+    Enable SSH on the Pi. Create an SSH key and deploy them in a folder ``/home/pi/keys/``. Add the public key to the ``.ssh/authorized_keys`` file. **Note:** The user which executes the program needs ``sudo`` privileges without a password. ``sudo`` must be installed.
 
 2. Clone the Repository
 
@@ -54,6 +56,11 @@ The setup of a Raspberry Pi is automated as far as possible without to much effo
 
     In any case the user does not need to worry about the interface names as the Pis discover antenna by MAC address.
 
+- *Old Configuration Autostart*
+
+    When a client is started, it detects if a configuration (aka an airodump command) from a previous run is found. In that case it immediately executes this command, and after that will try to contact the server to fetch a new configuration. If that fails it will keep running the old command.
+
+    Currently only the airodump command from the previous configuration is used, all other settings (e.g., the servers IP address) are drawn from the current configuration file of the client.
 
 
        
