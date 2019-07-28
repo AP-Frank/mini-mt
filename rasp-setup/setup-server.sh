@@ -36,5 +36,5 @@ sudo iptables -t nat -A  POSTROUTING -o $(ls /sys/class/net | grep enx) -j MASQU
 sudo sh -c "iptables-save > /etc/iptables.ipv4.nat"
 
 sudo cp /etc/rc.local backups/rc.local.orig
-sudo sed -i "s,exit 0,iptables-restore < /etc/iptables.ipv4.nat\nexit 0,g" /etc/rc.local
+sudo sed -i "s,^exit 0$,iptables-restore < /etc/iptables.ipv4.nat\nexit 0,g" /etc/rc.local
 
