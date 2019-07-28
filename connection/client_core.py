@@ -122,7 +122,7 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
         finally:
             if isinstance(attempts, int):
                 attempts -= 1
-                logging.info(f'Remaing attempts {attempts}')
+                logging.info(f'Remaning attempts {attempts}')
 
     return connection_successful
 
