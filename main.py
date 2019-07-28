@@ -11,7 +11,13 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 settings = Settings(str(os.path.join('config', 'config.ini')))
 
 log_level = getattr(logging, settings.log_level)
-logging.basicConfig(level=log_level)
+logging.basicConfig(
+        level=log_level,
+        handlers=[
+            logging.FileHandler('mini-mt.log', mode='w'),
+            logging.StreamHandler()
+            ]
+        )
 
 if settings.is_server:
     logging.info('Starting Server')

@@ -169,7 +169,6 @@ def start_wlan_measurement(settings: config.config.Settings, stop_event: threadi
             wlans=','.join(airo_ifaces), output_file=output_file)
     logging.info(f'Starting Airodump with command:\n\t{call_statement}\n')
 
-    print(stop_event.is_set())
     while not stop_event.is_set():
         print(call_statement)
         subprocess.Popen(shlex.split(
