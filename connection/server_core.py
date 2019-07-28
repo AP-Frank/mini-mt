@@ -13,7 +13,6 @@ from connection.socket_wrapper import SocketWrapper
 def main(settings: Settings) -> None:
     # we set the default timeout, it should be inherited by sockets
     # created via accept
-    socket.setdefaulttimeout(settings.socket_timeout)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_port = settings.server_port
 
@@ -38,10 +37,11 @@ def run(client_socket: socket.socket, address: (str, int), settings: Settings) -
     """
     Thread which handles one client connection
     """
-    logging.info(f'Client (ip: {address[0]}) has connected')
+    logging.info(f'Client (IP: {address[0]}) has connected')
+    client_socket.settimeout(settings.socket_timeout)
     wsock = SocketWrapper(client_socket)
 
-    while(True):
+    try:
         # now send timestamp and start signal
         logging.info('Starting to send data')
         wsock.send_message(bytes(TimeMessage()))
@@ -54,8 +54,9 @@ def run(client_socket: socket.socket, address: (str, int), settings: Settings) -
             if msg.command == Command.CYA:
                 logging.info('Client has signaled successfull start of operation')
                 # remote device has started successfully
-                break
 
-        # TODO: maybe add some additional error handling here
-
+        client_socket.close()
+    except ConnectionResetError:
+        logging.info(f'Client (IP: {address[0]}) has reset the connection')
+        client_socket.close()
 
