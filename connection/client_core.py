@@ -76,6 +76,7 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
     Returns True if a successful connection attempt was made, False otherwise
     """
     connection_successful = False
+    print(attempts)
 
     while(attempts is None or attempts > 0):
         try:
@@ -92,7 +93,7 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
                 continue
 
             msg = wsock.receive_message()
-            if not isinstance(msg, CommandMessage) or not isinstance(msg.command, Command.COMMAND):
+            if not isinstance(msg, CommandMessage) or not msg.command == Command.COMMAND:
                 # we expect a the airodump command next
                 continue
 
@@ -119,9 +120,9 @@ def contact_server(settings: config.config.Settings, attempts: Optional[int]) ->
             logging.info('Socket connect has timed out, restarting')
             sock.close()
         finally:
-            if attempts is int:
+            if isinstance(attempts, int):
                 attempts -= 1
-                logging.info('Remaing attempts {attempts}')
+                logging.info(f'Remaing attempts {attempts}')
 
     return connection_successful
 
@@ -133,6 +134,9 @@ def set_time(time: dt.datetime) -> None:
 
 
 def start_wlan_measurement(settings: config.config.Settings, stop_event: threading.Event, override_command=None) -> None:
+    # make sure no other airodump instances are running
+    subprocess.call('sudo killall airodump-ng', shell=True)
+
     output_file = os.path.join(settings.capture_path, 'capture')
 
     # get wlans, this only works on linux
@@ -165,7 +169,8 @@ def start_wlan_measurement(settings: config.config.Settings, stop_event: threadi
             wlans=','.join(airo_ifaces), output_file=output_file)
     logging.info(f'Starting Airodump with command:\n\t{call_statement}\n')
 
-    while not stop_event.is_set:
+    print(stop_event.is_set())
+    while not stop_event.is_set():
         print(call_statement)
         subprocess.Popen(shlex.split(
             call_statement), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
