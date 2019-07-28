@@ -32,7 +32,7 @@ sudo systemctl enable hostapd
 sudo systemctl start hostapd
 
 sudo cp sysctl.conf /etc
-sudo iptables -t nat -A  POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A  POSTROUTING -o $(ls /sys/class/net | grep enx) -j MASQUERADE
 sudo sh -c "iptables-save > /etc/iptables.ipv4.nat"
 
 sudo cp /etc/rc.local backups/rc.local.orig
