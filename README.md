@@ -16,8 +16,23 @@ This is a simplified version of the MobilityTracking project. The code is comple
 | Compression of Output             | yes              | yes     |
 | Autostart with old Configurations | no               | yes     |
 
+
+## Usage
+**Note:** If the project is not set up, follow the setup notes first.
+
+Adapt the settings on the clients and the server according to your preferences (edit ``config/config.ini``). Clients are set up to automatically connect to the server on startup.
+
+On the server navigate to the directory where this repository resides. Then type:
+````bash
+pipenv shell
+python main.py
+
+# or
+pipenv run python main.py
+````
+
 ## Setup Notes
-The setup of a Raspberry Pi is automated as far as possible without to much effort. When setting up a new Pi follow these instructions (**Note**: Internet access is required):
+The setup of a Raspberry Pi is automated as far as possible without to much effort. Target: Pi 3 with Raspbian OS. When setting up a new Pi follow these instructions (**Note**: Internet access is required):
 
 1. Setup SSH
    
@@ -47,7 +62,16 @@ The setup of a Raspberry Pi is automated as far as possible without to much effo
 
     The remaining configuration of the Pi is done within the ``config/config.ini`` file. All options are explained within this file.
 
+## Program Purpose
+The main purpose of this project is to have a simple system to instruct Raspberry Pis to conduct long running airodump measurements. One Pi acts as a server, it creates an access point to which the clients connect (a user may also use the access point to control this Pi). The user can set an airodump command in the configuration file of the server, this command will be sent to all client which connect.
 
+For airodump measurements the client should have at least one external antenna, the internal one is used to communicate with the server. After booting a client will immediately start measuring if it finds an airodump command from the previous run. In any case it will try to connect to the server Pi and fetch a new command. If the connection is successful it will use the new command to capture packets, otherwise it will continue with the old command.
+
+A typical use case might look like this:
+1. Configure the client Pis via the server
+2. Place the clients at the locations they are supposed to measure at
+3. Clients can be turned on and off (whenever powered on they will continue measuring)
+4. Come back later with the server Pi. Clients automatically connect to its AP and you can ssh/scp your measured files from the clients
 
 ## Design Choices
 - *Predictable Interface Names*
